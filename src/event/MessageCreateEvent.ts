@@ -6,13 +6,14 @@ import IMessageCommandMap from "../interface/IMessageCommandMap";
 import ClassLogger from "../logging/Logger";
 import { applyAlias } from "../utils/Utils"
 import { pingCommand } from "../command/message/PingCommand";
-import searchCommand from "../command/message/Search";
+import searchCommand from "../command/message/SearchCommand";
+import skipCommand from "../command/message/SkipCommand";
 
 /* ==== PROPERTIES ============================================================================== */
 const logger = new ClassLogger(null as any, __filename);
 
 /* ==== EVENT - messageCreate =================================================================== */
-export default async (_: StrangerBot, msg: Message) => {
+export default async (_: StrangerBot, msg: Message): Promise<void> => {
     const prefix: string = process.env.PREFIX as string;
 
     // Bot message: reject
@@ -48,8 +49,9 @@ export default async (_: StrangerBot, msg: Message) => {
 
 /* ==== COMMANDS MAP ============================================================================ */
 const messageCommandMap: IMessageCommandMap = {
-    "pang, peng, ping, pong, pung": pingCommand,
-    "search": searchCommand
+    "ping": pingCommand,
+    "search": searchCommand,
+    "skip": skipCommand
 }
 
 /* ==== MULTI-KEY HANDLING ====================================================================== */

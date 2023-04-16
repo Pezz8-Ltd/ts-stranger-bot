@@ -5,5 +5,5 @@ import ICommand from "../../interface/ICommand";
 /* ==== COMMAND ================================================================================= */
 export const pingCommand: ICommand = {
     name: "ping",
-    fn: (msg: Message) => msg.reply( `Pxng! (${strangerBot.ws.ping}ms)` )
+    fn: (msg: Message) => msg.reply( `Pong! (${strangerBot.ws.ping}ms)` )
 }

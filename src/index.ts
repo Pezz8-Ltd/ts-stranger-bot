@@ -5,7 +5,7 @@ import { GatewayIntentBits, Options } from 'discord.js';
 
 import StrangerBot from "./config/StrangerBot";
 
-/* ==== Core ============================================================================================================================== */
+/* ==== Core ==================================================================================== */
 export const strangerBot: StrangerBot = new StrangerBot({
     intents: [
         GatewayIntentBits.DirectMessages,
