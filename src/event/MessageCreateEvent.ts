@@ -5,7 +5,7 @@ import ICommand from "../interface/ICommand";
 import IMessageCommandMap from "../interface/IMessageCommandMap";
 import ClassLogger from "../logging/Logger";
 import { applyAlias } from "../utils/Utils"
-import { pingCommand } from "./../command/message/PingCommand";
+import { pingCommand } from "../command/message/PingCommand";
 import searchCommand from "../command/message/Search";
 
 /* ==== PROPERTIES ============================================================================== */

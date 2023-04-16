@@ -30,23 +30,22 @@ const searchCommand: ICommand = {
         const country: Country = countries[language.toUpperCase()];
         
         // Check if a StrangerServer object has already been created for this server
-        const strangerServer: StrangerServer = country[guildId] ?? new StrangerServer();
-        country[guildId] = strangerServer;
+        const stranger: StrangerServer = country[guildId] ?? new StrangerServer();
+        country[guildId] = stranger;
 
         // Check if the bot is already being used in this server
-        if(strangerServer.status === StrangerStatus.MATCHED) return;
+        if(stranger.isMatched()) return;
 
         // Save userId, text and voice channel previously checked
-        strangerServer.userId = userId;
-        strangerServer.textChannel = msg.channel;
-        strangerServer.userVoiceChannel = userVoiceChannel;
+        stranger.userId = userId;
+        stranger.textChannel = msg.channel;
+        stranger.userVoiceChannel = userVoiceChannel;
 
         // Check if a voice connection has already been created for this server
-        strangerServer.botVoiceConnection = strangerServer.botVoiceConnection ?? joinVoiceChannel({ selfDeaf: false, channelId, guildId, adapterCreator: msg.guild?.voiceAdapterCreator as InternalDiscordGatewayAdapterCreator });
-        console.log(strangerServer.botVoiceConnection)
+        stranger.botVoiceConnection = stranger.botVoiceConnection ?? joinVoiceChannel({ selfDeaf: false, channelId, guildId, adapterCreator: msg.guild?.voiceAdapterCreator as InternalDiscordGatewayAdapterCreator });
 
         // Start stranger research
-        strangerServer.startSearching(country, userId);
+        stranger.startSearching(country, userId);
     }
 }
 export default searchCommand;

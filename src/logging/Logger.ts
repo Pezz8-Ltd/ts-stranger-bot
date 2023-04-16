@@ -20,7 +20,7 @@ export default class ClassLogger {
     private className: string;
     constructor(className: string, dirname?: string) {
         this.className = dirname
-        ? (dirname.split("/stranger-bot/", 2)[1].replace(/\//g, '.').replace(/\.[tj]?s/, '') + ( className ? ('.'+className) : "" ))
+        ? (dirname.split("/src/", 2)[1].replace(/\//g, '.').replace(/\.[tj]?s/, '') + ( className ? ('.'+className) : "" ))
         : className;
     }
 

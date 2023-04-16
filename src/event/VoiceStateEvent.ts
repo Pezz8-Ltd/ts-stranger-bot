@@ -1,9 +1,7 @@
 import { VoiceState } from "discord.js";
-import { OpusEncoder } from '@discordjs/opus';
 
-import { strangerBot } from "..";
 import ClassLogger from "../logging/Logger";
-import { Country, StrangerLanguage, StrangerServer, countries, strangerCloseStreamEmitter } from "../fragment/Strangers";
+import { Country, StrangerLanguage, StrangerServer, countries } from "../fragment/Strangers";
 
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
@@ -17,21 +15,23 @@ export default (_: any, oldState: VoiceState, newState: VoiceState) => {
     if(oldState.channel && (oldState.channelId != newState.channelId)) {
         const guildId = oldState.guild.id;
         const userId = oldState.member?.id;
+        let country: Country;
+        let stranger: StrangerServer;
 
-        // TODO: trovare modo per determinare country di appartenenza e non cercare ovunque
+        // TODO: If the bot leaves the vc, abort connection
+
+        // TODO: find a way to determine the country without looking for the stranger everywhere
         for(const language in StrangerLanguage) {
-            if(isNaN(Number(language))) {
-                const country: Country = countries[language];
-                if(country) {
-                    const stranger: StrangerServer = country[guildId];
-                    if(stranger && stranger.isMatched()) {
-                        if(stranger.userId == userId) {
-                            logger.debug("Emitted close event from voiceStateUpdate!");
-                            strangerCloseStreamEmitter.emit("close", stranger.matchedStranger);
-                        }
-                    }
-                }
-            }
+            if(!isNaN(Number(language))) continue;
+
+            country = countries[language];
+            if(!country) continue;
+
+            stranger = country[guildId];
+            if(!stranger || !stranger.isMatched() || stranger.userId != userId) continue;
+
+            stranger.debug("VoiceStateUpdate triggered, aborting...");
+            stranger.abort();
         }
     }
 }
