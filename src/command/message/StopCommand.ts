@@ -4,8 +4,8 @@ import ICommand from "../../interface/ICommand";
 import { Country, StrangerServer, countries } from "../../fragment/Strangers";
 
 /* ==== COMMAND ================================================================================= */
-const searchCommand: ICommand = {
-    name: "search",
+const stopCommand: ICommand = {
+    name: "stop",
     fn: async (msg: Message, language: string) => {
 
         // Command cannot be used by bots
@@ -24,11 +24,11 @@ const searchCommand: ICommand = {
         
         // Check if a StrangerServer object has already been created for this server
         const guildId: string = msg.guildId as string;
-        const stranger: StrangerServer = country[guildId] ?? new StrangerServer(country);
-        country[guildId] = stranger;
+        const stranger: StrangerServer = country[guildId];
+        if(!stranger) return;
 
         // After retrieving the correct stranger, leave the handling to it
-        stranger.searchCommand(msg.member?.id as string, msg.channel, voiceChannel);
+        stranger.stopCommand(msg.member?.id as string);
     }
 }
-export default searchCommand;
+export default stopCommand;

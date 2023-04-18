@@ -8,6 +8,7 @@ import { applyAlias } from "../utils/Utils"
 import { pingCommand } from "../command/message/PingCommand";
 import searchCommand from "../command/message/SearchCommand";
 import skipCommand from "../command/message/SkipCommand";
+import stopCommand from "../command/message/StopCommand";
 
 /* ==== PROPERTIES ============================================================================== */
 const logger = new ClassLogger(null as any, __filename);
@@ -51,7 +52,8 @@ export default async (_: StrangerBot, msg: Message): Promise<void> => {
 const messageCommandMap: IMessageCommandMap = {
     "ping": pingCommand,
     "search": searchCommand,
-    "skip": skipCommand
+    "skip": skipCommand,
+    "stop": stopCommand
 }
 
 /* ==== MULTI-KEY HANDLING ====================================================================== */

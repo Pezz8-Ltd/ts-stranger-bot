@@ -5,7 +5,7 @@ import { Country, StrangerServer, countries } from "../../fragment/Strangers";
 
 /* ==== COMMAND ================================================================================= */
 const skipCommand: ICommand = {
-    name: "search",
+    name: "skip",
     fn: async (msg: Message, language: string) => {
 
         // Command cannot be used by bots
@@ -28,7 +28,7 @@ const skipCommand: ICommand = {
         if(!stranger) return;
 
         // After retrieving the correct stranger, leave the handling to it
-        stranger.skipCommand(country, msg.member?.id as string, msg.channel, voiceChannel);
+        stranger.skipCommand(msg.member?.id as string, msg.channel, voiceChannel);
     }
 }
 export default skipCommand;

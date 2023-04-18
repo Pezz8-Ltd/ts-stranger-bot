@@ -1,13 +1,30 @@
 import { InternalDiscordGatewayAdapterCreator, TextChannel, VoiceBasedChannel } from "discord.js";
 import { AudioPlayer, AudioReceiveStream, EndBehaviorType, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
+import { EventEmitter } from "events";
+import { XXHash3 } from "xxhash-addon";
 
 import ClassLogger from "../logging/Logger";
+import DynamicMessage from "./DynamicMessage";
 import { sleepBool } from "../utils/Utils";
-import { EventEmitter } from "events";
 
 /* ==== INTERFACES ============================================================================== */
 export interface Countries { [k: string]: Country; }
 export interface Country { [k: string]: StrangerServer; }
+
+const salt: string = process.env.HASH_SECRET as string;
+export class UserMetadata {
+    constructor(userId: string) {
+        this.id = userId;
+        this.hash = UserMetadata.hash(userId);
+    }
+
+    id: string;
+    hash: string;
+
+    static hash(s: string) {
+        return XXHash3.hash( Buffer.from(s + salt) ).toString("hex");
+    }
+}
 
 /* ==== ENUMS =================================================================================== */
 // Country pool
@@ -50,30 +67,39 @@ strangerStreamEmitter.on("close", (stranger: StrangerServer): void => {
 export class StrangerServer {
 
     /* ==== CONSTRUCTOR ========================================================================= */
-    constructor() {
+    constructor(country: Country) {
         // Create AudioPlayer for this server - it will be the same for the lifetime of the stranger
         this.botAudioPlayer = createAudioPlayer();
         this.botAudioPlayer.on("error", err => this.error("AudioPlayer error: " + err.message));
         // this.botAudioPlayer.on("stateChange", (_, newState) => this.debug("AudioPlayer state changed: " + newState.status));
+
+        // Create dynamicMessage for user interface
+        this.dynamicMessage = new DynamicMessage();
+        this.country = country;
     }
 
     /* ==== PROPERTIES ========================================================================== */
+    // Self reference utils
+    country: Country;
+
     // Bot connections
     botAudioPlayer: AudioPlayer;
     botVoiceConnection: VoiceConnection;
 
     // stranger info and connections
-    userId: string;
+    userMetadata: UserMetadata;
     textChannel: TextChannel;
+    dynamicMessage: DynamicMessage;
     voiceChannel?: VoiceBasedChannel;
     status?: StrangerStatus;
 
     // matchedStranger info and connections
+    lastMatchedStranger?: string;
     matchedStranger?: StrangerServer;
     userInputStream?: AudioReceiveStream;
 
     /* ==== UTILS =============================================================================== */
-    getMetadataPrefix = (): string => `[${this.textChannel.guildId}/${this.userId}] `;
+    getMetadataPrefix = (): string => `[${this.textChannel.guildId}/${this.userMetadata.id}] `;
     debug = (s: string): void => logger.debug(this.getMetadataPrefix() + s);
     info = (s: string): void => logger.info(this.getMetadataPrefix() + s);
     warn = (s: string): void => logger.warn(this.getMetadataPrefix() + s);
@@ -81,6 +107,11 @@ export class StrangerServer {
 
     isPending = (): boolean => this.status === StrangerStatus.PENDING;
     isMatched = (): boolean => this.status === StrangerStatus.MATCHED;
+
+    updateTextChannel = (textChannel: TextChannel): void => {
+        this.textChannel = textChannel;
+        this.dynamicMessage.updateTextChannel(textChannel);
+    }
 
     isStreamOpen = (): boolean => !!this.userInputStream && !this.userInputStream.closed;
     isDisconnected = (): boolean => !this.botVoiceConnection || this.botVoiceConnection.state.status === VoiceConnectionStatus.Disconnected
@@ -93,43 +124,41 @@ export class StrangerServer {
      * If the user is actually already using the bot (status MATCHED), behave like a skip command is
      * sent. If not, update all the user related properties and create the voice connection.
      * The setup is ready, the actual searching process starts.
-     * @param country country this stranger is contained in
      * @param callerUserId id of the user that sent the command
      * @param textChannel text channel the user sent the message from
      * @param voiceChannel voice channel where the user is
      */
-    searchCommand(country: Country, callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel): void {
+    searchCommand(callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel): void {
         // Check if the bot is already being used - If it is, act just like a skip command
-        if(this.isMatched()) return this.skipCommand(country, callerUserId, textChannel, voiceChannel);
+        if(this.isMatched()) return this.skipCommand(callerUserId, textChannel, voiceChannel);
 
         // Save userId, text and voice channel previously checked
-        this.userId = callerUserId;
-        this.textChannel = textChannel;
+        this.userMetadata = new UserMetadata(callerUserId);
+        this.updateTextChannel(textChannel);
         this.voiceChannel = voiceChannel;
 
         // Check if a voice connection has already been created for this server
         if(this.isDisconnected()) this.botVoiceConnection = joinVoiceChannel({ selfDeaf: false, channelId: voiceChannel.id, guildId: textChannel.guildId, adapterCreator: textChannel.guild?.voiceAdapterCreator as InternalDiscordGatewayAdapterCreator });
 
         // Start stranger research
-        this.startSearching(country, callerUserId);
+        this.startSearching(callerUserId);
     }
 
     /**
      * Basically the same logic as the search command, but is asserted that a connection is ongoing
      * and that the user invoking the ommand is bound to the stranger.
      * ! MASTER behaviour: Before startin the searching process, the previous connection is aborted.
-     * @param country country this stranger is contained in
      * @param callerUserId id of the user that sent the command
      * @param textChannel text channel the user sent the message from
      * @param voiceChannel voice channel where the user is
      */
-    skipCommand(country: Country, callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel): void {
+    skipCommand(callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel): void {
         // Check if the stranger is bound to this user and if it's actually matched
-        if(this.userId !== callerUserId || !this.isMatched()) return;
+        if(!this.isMatched() || this.userMetadata?.id !== callerUserId) return;
 
         // Save userId, text and voice channel previously checked
-        this.userId = callerUserId;
-        this.textChannel = textChannel;
+        this.userMetadata = new UserMetadata(callerUserId);
+        this.updateTextChannel(textChannel);
         this.voiceChannel = voiceChannel;
 
         // Check if a voice connection has already been created for this server
@@ -142,7 +171,17 @@ export class StrangerServer {
         this.abort(false);
 
         // After aborting the connection, start looking for another stranger
-        this.startSearching(country, callerUserId);
+        this.startSearching(callerUserId);
+    }
+
+    stopCommand(callerUserId: string) {
+        // Check if the stranger is bound to this user and if it's actually matched
+        if(this.userMetadata?.id !== callerUserId) return;
+
+        // ! MASTER behaviour: the stranger will abort the connection for both ends (if any)
+        // Since we're stopping, we want the bot to quit the voice channel
+        this.debug("Stop triggered, aborting...");
+        this.abort(true);
     }
 
     /**
@@ -154,14 +193,14 @@ export class StrangerServer {
     voiceStateUpdate(callerUserId: string, isStrangerBot: boolean): void {
         // If the stranger is not matched, do nothing
         // If the user is not the bot itself and is not bound to this stranger, do nothing
-        if(!this.isMatched() || (this.userId != callerUserId && !isStrangerBot) ) return;
+        if((!this.isMatched() && !this.isPending()) || (this.userMetadata.id != callerUserId && !isStrangerBot) ) return;
 
         if(isStrangerBot) this.warn("The bot has been kicked with an ongoing connection!");
 
         // ! MASTER behaviour: the stranger aborts the connection for both ends
         // If the user abandoned the voice chat, disconnect the bot from the channel
         this.debug("VoiceStateUpdate triggered, aborting...");
-        this.abort(!isStrangerBot);
+        this.abort(true);
     }
 
 
@@ -181,10 +220,9 @@ export class StrangerServer {
      * 
      * The other one will find himself MATCHED and
      * will break the loop when the status check is made.
-     * @param country string from StrangerLanguage enum, used to retrieve that specific country
      * @param callerUserId userId of the user calling the method
      */
-    async startSearching(country: Country, callerUserId: string): Promise<void> {
+    async startSearching(callerUserId: string): Promise<void> {
         // Set status to PENDING so that the stranger can be visible from the others
         this.status = StrangerStatus.PENDING;
         let retries = 0;
@@ -200,8 +238,8 @@ export class StrangerServer {
             }
 
             // Retrieve all the country strangers and remove this and all the non-searching
-            const strangers: [string, StrangerServer][] = Object.entries(country)
-                .filter( (e: [string, StrangerServer]): boolean => e[1].isPending() && e[0] !== this.textChannel.guildId );
+            const strangers: [string, StrangerServer][] = Object.entries(this.country)
+                .filter( (e: [string, StrangerServer]): boolean => e[1].isPending() && e[0] !== this.textChannel.guildId && e[0] !== this.lastMatchedStranger );
 
             // If there are no other servers searching, try again
             if(!strangers.length) {
@@ -260,6 +298,8 @@ export class StrangerServer {
         this.matchedStranger = matchedStranger;
         this.status = StrangerStatus.MATCHED;
 
+        this.dynamicMessage.updateContent("You got matched with **" + this.matchedStranger.userMetadata.hash + "**.").resend();
+
         // Start audio streams event chain - the bot will now play whatever the stranger says
         this.listenToStranger();
     }
@@ -292,17 +332,19 @@ export class StrangerServer {
         let stranger: StrangerServer | undefined = this.matchedStranger;    // Just an alias
         if(!stranger) return;
 
+        /*
         //! MASTER behaviour: abort connection if the user is not connected before creating stream
         // It should never be the case, since the "voiceStateUpdate" event already handles this
         // This check is here just as a double check and to be sure no unexpected behaviour occurs
-        if(!stranger || !stranger.checkVoicePresence(stranger.userId)) {
+        if(!stranger || !stranger.checkVoicePresence(stranger.userMetadata.id)) {
             this.warn("Check failed during listening process, voiceStateUpdate not triggered!");
             return this.abort(true);
         }
+        */
 
         // Retrieve new AudioReceiveStream from the stranger voice connection
         // TODO (once everything works): try to merge all the user streams on the stranger's channel
-        stranger.userInputStream = stranger.botVoiceConnection.receiver.subscribe(stranger.userId, { end: { behavior: EndBehaviorType.AfterInactivity, duration: 200 } });
+        stranger.userInputStream = stranger.botVoiceConnection.receiver.subscribe(stranger.userMetadata.id, { end: { behavior: EndBehaviorType.AfterInactivity, duration: 200 } });
 
         // Define stream behaviour on close: emit a custom event to trigger this method again
         stranger.userInputStream.once("close", () => {
@@ -322,29 +364,43 @@ export class StrangerServer {
     /**
      * ! Method the MASTER for the destruction calls to abort connections and update properties.
      * Triggered directly by voiceStateUpdate event OR listenToStranger (it shouldn't).
-     * The bot will automatically disconnect if someone leaves while MATCHED.
-     * // While the MASTER is set to ABORTED, the SLAVE is set to PENDING, since he didn't want to quit
+     * The bot will automatically start searching again if someone leaves while MATCHED.
+     * While the MASTER is set to ABORTED, the SLAVE is set to PENDING, since he didn't want to quit
      * @param quitVoiceChannel whether the bot has to disconnect from the voice channel or not
      */
     abort(quitVoiceChannel: boolean = false): void {
-        if(quitVoiceChannel) this._disconnect();
-        this.matchedStranger?._disconnect();
+        //! Since we're the MASTER, the SLAVE may want to continue talking: start searching again!
+        // this.matchedStranger?._disconnect(); - OLD BEHAVIOUR: disconnect on MASTER's abort
+        if(this.matchedStranger) {
+            this.matchedStranger._abort();
+            this.matchedStranger.startSearching(this.matchedStranger.userMetadata.id);
+        }
 
-        this.matchedStranger?._abort();
+        // Abort our connection
+        if(quitVoiceChannel) this._disconnect();
         this._abort();
-        this.debug("Connections aborted!");
     }
 
     /**
      * Method called internally by the abort() method for both strangers (itself and the matched)
      */
     private _abort(): void {
+        const isMatched: boolean = this.isMatched();
         this.status = StrangerStatus.ABORTED;
         this.userInputStream?.push(null);   // destroy() sends and error event, null push is the way
+
+        // If there was no other stranger talking, don't even mention the connection
+        if(isMatched)   this.dynamicMessage.updateContent("The connection with **" + this.matchedStranger?.userMetadata.hash + "** has ended.").resend();
+        else            this.dynamicMessage.updateContent("Bye bye!").resend();
+    
+        this.lastMatchedStranger = this.matchedStranger?.textChannel.guildId;
         this.matchedStranger = undefined;
+        this.debug("Connection aborted!");
     }
 
     private _disconnect(): boolean {
-        return this.botVoiceConnection?.disconnect();
+        const r: boolean = this.botVoiceConnection?.disconnect();
+        if(r) this.debug("Disconnecting from voiceChannel...");
+        return r;
     }
 }
