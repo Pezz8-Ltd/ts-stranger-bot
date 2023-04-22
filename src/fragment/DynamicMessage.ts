@@ -1,4 +1,4 @@
-import { Message, TextBasedChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import ClassLogger from "../logging/Logger";
 
 /* ==== PROPERTIES ============================================================================== */
@@ -8,48 +8,18 @@ const logger = new ClassLogger(null as any, __filename);
 export default class DynamicMessage {
 
     /* ==== CONSTRUCTOR ========================================================================= */
-    constructor() {
-        this.uuid = Date.now();
+    constructor(textChannel: TextChannel) {
+        this.textChannel = textChannel;
+        this.guildId = textChannel.guildId;
     }
 
     /* ==== PROPERTIES ========================================================================== */
     message: Message;               // Reference to the actual message in the Discord text channel
     messageContent: any;            // Content of the message (Embed & Components)
-    textChannel: TextBasedChannel;  // Text channel the message is and needs to be sent
-    uuid: number;                   // Unique identifier of this DynamicMessage
+    textChannel: TextChannel;       // Text channel the message is and needs to be sent
+    guildId: string;
 
-
-    /* ==== METHODS ============================================================================= */
-    /**
-     * Checks whether or not the given uuid is bound to this message.
-     * @param uuid the uuid received that needs to be verified
-     */
-    check(uuid: number): boolean {
-        return this.uuid === uuid;
-    }
-    // check = (UUID?: number): DynamicMessage => (!UUID || this.UUID == UUID) ? this : undefined;
-    
-    /**
-     * Binds a textChannel to the message class, overriding the old one
-     * @param textChannel new text channel to bind
-     */
-    updateTextChannel(textChannel: TextBasedChannel): DynamicMessage {
-        this.textChannel = textChannel;
-        return this;
-    }
-
-    /**
-     * Overrides the content of the message with the one given in input.
-     * @param messageContent new message content to put in the already existing message
-     */
-    updateContent(messageContent: any): DynamicMessage {
-        this.messageContent = messageContent;
-        return this;
-    }
-
-    /**
-     * Creates and sends the message in the bound text channel.
-     */
+    /* ==== CORE ================================================================================ */
     async create (): Promise<Message | null> {
         // If there is no content, don't send the message (an error would be thrown anyway)
         if(!this.messageContent) return null;
@@ -59,12 +29,16 @@ export default class DynamicMessage {
         return this.message;
     }
 
-    /**
-     * Updates the message if exists, creates it otherwise.
-     */
+    async delete(): Promise<void> {
+        try {
+            if(this.message?.deletable) await this.message.delete(); 
+        } catch(e) {
+            logger.error("Delete error: " + e.message);
+        }
+    }
+
     async update(): Promise<Message | null> {
         try {
-            // Try editing the current message
             if(this.message?.editable) return await this.message.edit(this.messageContent);
         } catch(e) {
             logger.error("Update error: " + e.message);
@@ -74,26 +48,31 @@ export default class DynamicMessage {
         return this.create();
     }
 
-    /**
-     * Deletes the message if exists.
-     */
-    async delete(): Promise<void> {
-        try {
-            // Try deleting the current message
-            if(this.message?.deletable) await this.message.delete(); 
-        } catch(e) {
-            logger.error("Delete error: " + e.message);
+    async resend(): Promise<Message | null> {
+        this.delete();
+        return this.create();
+    }
+
+    /* ==== UTILS =============================================================================== */
+    updateTextChannel(textChannel: TextChannel): void {
+        if(this.textChannel?.id !== textChannel.id) {
+            this.textChannel = textChannel;
+            this.resend();
         }
     }
 
-    /**
-     * Deletes the old message if exists, then sends a new one.
-     */
-    async resend(): Promise<Message | null> {
-        // Try deleting the current message
-        this.delete();
+    updateContentAndUpdate(messageContent: any): Promise<Message | null> {
+        this.messageContent = messageContent;
+        return this.update();
+    }
 
-        // Create a new message
-        return this.create();
+    updateContentAndResend(messageContent: any): Promise<Message | null> {
+        this.messageContent = messageContent;
+        return this.resend();
+    }
+
+    updateContentAndUpdateOrResend(messageContent: any): Promise<Message | null> {
+        if(this.textChannel.lastMessageId != this.message?.id)   return this.updateContentAndResend(messageContent);
+        else                                                    return this.updateContentAndUpdate(messageContent);
     }
 }
