@@ -31,16 +31,25 @@ export default class StrangerBot extends Client {
         this.on("voiceStateUpdate", voiceStateEvent.bind(null, this));
         this.logger.info("Listening on event 'voiceStateUpdate'");
 
-        // Messages are deprecated, only application commands are available
-        // this.on("messageCreate", messageCreateEvent.bind(null, this));
-        // this.logger.info("Listening on event 'messageCreate'");
-
-        // The put method is used to fully refresh all commands
+        
+        /* The put method is used to fully refresh all commands
         if(isProd) {
-            new REST()
-                .setToken(token)
+            const rest = new REST();
+
+            rest.get(Routes.applicationCommands( process.env.PROD_APPID as string ))
+                .then(data => {
+                    const promises = [];
+                    for (const command of data) {
+                        const deleteUrl = `${Routes.applicationCommands( process.env.PROD_APPID as string )}/${command.id}`;
+                        promises.push(rest.delete( deleteUrl ));
+                    }
+                    return Promise.all(promises);
+                });
+
+            rest.setToken(token)
                 .put( Routes.applicationCommands( process.env.PROD_APPID as string ), { body: slashCommandBuilders })
-                .then( (data: any): void => this.logger.info(`Successfully reloaded ${data.length} application {/} commands.`))
+                .then( (data: any): void => this.logger.info(`Successfully reloaded ${data.length} application {/} commands.`));
         }
+        */
     }
 }

@@ -36,7 +36,7 @@ export default class DynamicInteraction {
             if(!this.interaction?.replied) return await this.interaction?.reply(this.messageContent);
             return await this.interaction?.editReply(this.messageContent);
         } catch(e) {
-            logger.error("Update error: " + e.message);
+            logger.error("["+this.interaction?.guildId+"] Update error: " + e.message);
         }
     }
 

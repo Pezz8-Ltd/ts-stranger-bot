@@ -4,12 +4,11 @@ import { EventEmitter } from "events";
 import { XXHash3 } from "xxhash-addon";
 
 import ClassLogger from "../logging/Logger";
-import { sleepBool } from "../utils/Utils";
+import { getDurationFromMs, sleepBool } from "../utils/Utils";
 import { ColorResolvable } from "discord.js";
 import { ButtonBuilder } from "discord.js";
 import { ButtonStyle } from "discord.js";
 import DynamicInteraction from "./DynamicInteraction";
-
 
 /* ==== ENUMS =================================================================================== */
 /**
@@ -24,13 +23,10 @@ export enum StrangerStatus { PENDING, MATCHED, ABORTED }
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
 const HASH_SALT: string = process.env.HASH_SECRET as string;
-const EMBED_COLOR: ColorResolvable = "DarkVividPink";
+const MAIN_EMBED_COLOR: ColorResolvable = "DarkVividPink";
+const INFO_EMBED_COLOR: ColorResolvable = "Grey";
 const POLLING_WAIT_MS = 1000;
 const POLLING_MAX_RETRIES = 60; // Stop searching after one minute
-
-const MS_PER_SECOND: number = 1000;
-const MS_PER_MINUTE: number = MS_PER_SECOND * 60;
-const MS_PER_HOUR: number = MS_PER_MINUTE * 60;
 
 // Inizializzo mappa di strangers con una mappa di server vuota
 export const strangerServersMap: { [k: string]: StrangerServer; } = {};
@@ -110,72 +106,82 @@ export class StrangerServer {
     isMatched = (): boolean => this.status === StrangerStatus.MATCHED;
 
     isStreamOpen = (): boolean => !!this.userInputStream && !this.userInputStream.closed;
-    isDisconnected = (): boolean => !this.botVoiceConnection || this.botVoiceConnection.state.status === VoiceConnectionStatus.Disconnected
+    isDisconnected = (): boolean =>
+        !this.botVoiceConnection ||
+        this.botVoiceConnection.state.status === VoiceConnectionStatus.Disconnected ||
+        this.botVoiceConnection.state.status === VoiceConnectionStatus.Signalling ||
+        this.botVoiceConnection.state.status === VoiceConnectionStatus.Destroyed
+
     checkVoicePresence = (userId: string): boolean => !!this.voiceChannel?.members.has(userId);
 
-    /* ==== INTERFACE UTILS ===================================================================== */
+    /* ==== INTERACTIONS UTILS ================================================================== */
     updateInteraction = (interaction: ChatInputCommandInteraction | null): void => { if(interaction) this.dynamicInteraction.updateInteraction(interaction); }
 
     getMatchContent(): { embeds: EmbedBuilder[], components: ActionRowBuilder[] } {
         // TODO: add image/description from user saved metadata (DB $$$)
-        const embed: EmbedBuilder = new EmbedBuilder().setColor(EMBED_COLOR)
-            .setTitle(`You are connected to **${this.matchedStranger?.userMetadata.getNickname()}**!`);
-        const stopButton: ButtonBuilder = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Stop").setCustomId(`stop-${this.language}`);
-        const skipButton: ButtonBuilder = new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel("Skip").setCustomId(`skip-${this.language}`);
+        const embed: EmbedBuilder = new EmbedBuilder().setColor(MAIN_EMBED_COLOR)
+            .setTitle("Stranger found!")
+            .setDescription(`You are connected to **${this.matchedStranger?.userMetadata.getNickname()}**.`);
+        const stopButton: ButtonBuilder = new ButtonBuilder()
+            .setStyle(ButtonStyle.Danger)
+            .setLabel("Stop")
+            .setCustomId(`stop-${this.language}`);
+        const skipButton: ButtonBuilder = new ButtonBuilder()
+            .setStyle(ButtonStyle.Primary)
+            .setLabel("Skip")
+            .setCustomId(`skip-${this.language}`);
         return { embeds: [ embed ], components: [ new ActionRowBuilder().addComponents(stopButton, skipButton) ]};
     }
 
     getSearchContent(): { embeds: EmbedBuilder[], components: ActionRowBuilder[] } {
-        const embed: EmbedBuilder = new EmbedBuilder().setColor(EMBED_COLOR)
-            .setTitle("Currently looking for another stranger...").setDescription(`Other strangers will see you as **${this.userMetadata.getNickname()}**`);
-        const stopButton: ButtonBuilder = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Stop").setCustomId(`stop-${this.language}`);
+        const embed: EmbedBuilder = new EmbedBuilder().setColor(MAIN_EMBED_COLOR)
+            .setTitle("Currently looking for another stranger...")
+            // .setDescription(`Your current nickname is **${this.userMetadata.getNickname()}**`);
+            .setFooter({ text: `Your current nickname is ${this.userMetadata.getNickname()}` });
+        const stopButton: ButtonBuilder = new ButtonBuilder()
+            .setStyle(ButtonStyle.Danger)
+            .setLabel("Stop")
+            .setCustomId(`stop-${this.language}`);
         return { embeds: [ embed ], components: [ new ActionRowBuilder().addComponents(stopButton) ]};
     }
 
     getAbortContent(): { embeds: EmbedBuilder[], components: ActionRowBuilder[] } {
-        const embed: EmbedBuilder = new EmbedBuilder().setColor(EMBED_COLOR)
-            .setTitle("Currently looking for another stranger...").setDescription(`The connection to **${this.matchedStranger?.userMetadata.getNickname()}** has been closed.`);
-        const stopButton: ButtonBuilder = new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel("Stop").setCustomId(`stop-${this.language}`);
+        const embed: EmbedBuilder = new EmbedBuilder()
+            .setColor(MAIN_EMBED_COLOR)
+            .setTitle(`Currently looking for another stranger...`)
+            .setDescription(`The connection to **${this.matchedStranger?.userMetadata.getNickname()}** has been closed.`)
+            .setFooter({ text: `Your current nickname is ${this.userMetadata.getNickname()}` });
+        const stopButton: ButtonBuilder = new ButtonBuilder()
+            .setStyle(ButtonStyle.Danger)
+            .setLabel("Stop")
+            .setCustomId(`stop-${this.language}`);
         return { embeds: [ embed ], components: [ new ActionRowBuilder().addComponents(stopButton) ]};
     }
 
     getStopContent(): { embeds: EmbedBuilder[], components: ActionRowBuilder[] } {
-        const embed: EmbedBuilder = new EmbedBuilder().setColor(EMBED_COLOR)
+        const embed: EmbedBuilder = new EmbedBuilder()
+            .setColor(MAIN_EMBED_COLOR)
             .setTitle(`You are no longer a **stranger**. See you next time!`);
-        const searchButton: ButtonBuilder = new ButtonBuilder().setStyle(ButtonStyle.Success).setLabel("Search").setCustomId(`search-${this.language}`);
+        const searchButton: ButtonBuilder = new ButtonBuilder()
+            .setStyle(ButtonStyle.Success)
+            .setLabel("Search")
+            .setCustomId(`search-${this.language}`);
         return { embeds: [ embed ], components: [ new ActionRowBuilder().addComponents(searchButton) ]};
     }
 
     getLanguageContent(language: string): { embeds: EmbedBuilder[] } {
-        const embed: EmbedBuilder = new EmbedBuilder().setColor("Grey")
+        const embed: EmbedBuilder = new EmbedBuilder()
+            .setColor(INFO_EMBED_COLOR)
             .setDescription(`Your language has been updated to ${language}!`);
         return { embeds: [ embed ] };
     }
 
     getSummary() {
         const durationMs: number = Date.now() - this.startTimestamp;
-        const embed: EmbedBuilder = new EmbedBuilder().setColor("Grey")
-            .setDescription(`Your had a nice talk with **${this.matchedStranger?.userMetadata.getNickname()}** that lasted for ${StrangerServer.getDurationFromMs(durationMs)}.`);
+        const embed: EmbedBuilder = new EmbedBuilder()
+            .setColor(INFO_EMBED_COLOR)
+            .setDescription(`Your connection with **${this.matchedStranger?.userMetadata.getNickname()}** lasted for ${getDurationFromMs(durationMs)}.`);
         return { embeds: [ embed ] };
-    }
-
-    static getDurationFromMs(durationMs: number): string {
-        const hh: number = Math.floor(durationMs / MS_PER_HOUR);
-        durationMs %= MS_PER_HOUR;
-        const mm: number = Math.floor(durationMs / MS_PER_MINUTE);
-        durationMs %= MS_PER_MINUTE;
-        const ss: number = Math.floor(durationMs / MS_PER_SECOND);
-
-        return StrangerServer.getDurationFromHHmmss(hh, mm, ss);
-    }
-
-    static getDurationFromHHmmss(hh: number, m: number, ss: number): string {
-        let mm: number | string = m;
-        if(hh) {
-            if(m < 10) mm = "0"+m;
-            mm = hh + ":" + mm;
-        }
-        return `${mm}:${ss < 10 ? ("0"+ss) : ss}`;
     }
 
     /* ==== COMMANDS & EVENTS =================================================================== */
@@ -185,7 +191,7 @@ export class StrangerServer {
      * @param language language the user want to set for the server
      * @param interaction slash command interaction received
      */
-    languageCommand(language: string, interaction: ChatInputCommandInteraction | null) {
+    languageCommand(language: string, interaction: ChatInputCommandInteraction | null): void {
         this.language = language;
         if(interaction) interaction.reply( this.getLanguageContent(language) );
     }
@@ -202,7 +208,10 @@ export class StrangerServer {
      */
     async searchCommand(callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel, interaction: ChatInputCommandInteraction | null): Promise<void> {
         // If the search is already ongoing, stop
-        if(this.isPending()) return;
+        if(this.isPending()) {
+            interaction?.reply({ content: "Already searching for a stranger!", ephemeral: true });
+            return;
+        }
         
         // Check if the bot is already being used - If it is, act just like a skip command
         if(this.isMatched()) return this.skipCommand(callerUserId, textChannel, voiceChannel, interaction);
@@ -232,9 +241,16 @@ export class StrangerServer {
      * @param voiceChannel voice channel where the user is
      * @param interaction slash command interaction received
      */
-    skipCommand(callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel, interaction: ChatInputCommandInteraction | null): void {
+    async skipCommand(callerUserId: string, textChannel: TextChannel, voiceChannel: VoiceBasedChannel, interaction: ChatInputCommandInteraction | null): Promise<void> {
         // Check if the stranger is bound to this user and if it's actually matched
-        if(!this.isMatched() || this.userMetadata?.id !== callerUserId) return;
+        if(!this.isMatched()) {
+            interaction?.reply({ content: "There's no stranger to skip!", ephemeral: true });
+            return;
+        }
+        if(this.userMetadata?.id !== callerUserId) {
+            interaction?.reply({ content: "Connection bound to another user!", ephemeral: true });
+            return;
+        }
 
         // Save userId, text and voice channel previously checked
         this.userMetadata = new UserMetadata(callerUserId);
@@ -246,7 +262,7 @@ export class StrangerServer {
         if(this.isDisconnected()) this.botVoiceConnection = joinVoiceChannel({ selfDeaf: false, channelId: voiceChannel.id, guildId: this.guildId, adapterCreator: textChannel.guild?.voiceAdapterCreator as InternalDiscordGatewayAdapterCreator });
 
         // Update interaction attached to the embed
-        if(interaction) this.dynamicInteraction.updateInteraction(interaction);
+        if(interaction) await this.dynamicInteraction.updateInteraction(interaction);
 
         // ! MASTER behaviour: the stranger will abort the connection for both ends
         // Since we're skipping, we don't want the bot to quit the voice channel
@@ -262,12 +278,21 @@ export class StrangerServer {
      * @param callerUserId id of the user that sent the command
      * @param interaction slash command interaction received
      */
-    stopCommand(callerUserId: string, interaction: ChatInputCommandInteraction | null) {
+    async stopCommand(callerUserId: string, interaction: ChatInputCommandInteraction | null): Promise<void> {
+
+        if(!this.isPending() && !this.isMatched()) {
+            interaction?.reply({ content: "There's no process to stop!", ephemeral: true });
+            return;
+        }
+
         // Check if the stranger is bound to this user and if it's actually matched
-        if(this.userMetadata?.id !== callerUserId) return;
+        if(this.userMetadata?.id !== callerUserId) {
+            interaction?.reply({ content: "Connection bound to another user!", ephemeral: true });
+            return;
+        }
 
         // Update interaction attached to the embed
-        if(interaction) this.dynamicInteraction.updateInteraction(interaction);
+        if(interaction) await this.dynamicInteraction.updateInteraction(interaction);
 
         // ! MASTER behaviour: the stranger will abort the connection for both ends (if any)
         // Since we're stopping, we want the bot to quit the voice channel

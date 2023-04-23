@@ -42,15 +42,5 @@ export default [
                 { name: "english", value: "EN" }
             )
         )
-        .toJSON(),
-
-        new SlashCommandBuilder()
-        .setName("report")
-        .setDescription("Report a bug you encountered while using the bot! We'll do our best to fix it.")
-        .addStringOption(option => option
-            .setName("description")
-            .setDescription("Describe the problem you had!")
-            .setRequired(true)
-        )
         .toJSON()
 ]
