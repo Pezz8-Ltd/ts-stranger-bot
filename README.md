@@ -10,12 +10,12 @@ The Bot allows users to change settings such as language and nickname displayed 
 
 The Bot is designed to randomly pair users for chat sessions with each other. The Bot does not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users.
 
-Please note that while the bot owners take reasonable steps to ensure that users are paired appropriately, we cannot guarantee the behavior of other users. Use of the Bot is at your own risk, and we assume no liability for any actions or behaviors of other users. By using the Bot, you agree to use it only for lawful purposes and in compliance with [Discord's Terms Of Service](https://discord.com/terms).
+Please note that while the Bot owners take reasonable steps to ensure that users are paired appropriately, we cannot guarantee the behavior of other users. Use of the Bot is at your own risk, and we assume no liability for any actions or behaviors of other users. By using the Bot, you agree to use it only for lawful purposes and in compliance with [Discord's Terms Of Service](https://discord.com/terms).
 
 
 ## Data Collection
 
-The Bot may collect certain information about you ("Data"), including but not limited to your Discord user ID and guild ID, for the purpose of saving user settings and preferences for future use. The bot does not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users. Data is not sold, provided to, or shared with any third party, except where required by law or a Terms of Service agreement.
+The Bot may collect certain information about you ("Data"), including but not limited to your Discord user ID and guild ID, for the purpose of saving user settings and preferences for future use. The Bot does not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users. Data is not sold, provided to, or shared with any third party, except where required by law or a Terms of Service agreement.
 
 
 ## Data Security
@@ -35,17 +35,17 @@ The use of the Bot is not permitted for minors under the age of 13, or under the
 
 ## Changes to the Terms of Service
 
-We reserve the right to modify these terms of service at any time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot/edit/env/svil/README.md) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any such modifications shall constitute your agreement to be bound by the modified terms.
+We reserve the right to modify these terms of service at any time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any such modifications shall constitute your agreement to be bound by the modified terms.
 
 
 ## Disclaimer of Warranty
 
-The bot is provided "as is" and without warranty of any kind, express or implied. We do not warrant that the bot will be error-free, uninterrupted, or free from viruses or other harmful components.
+The Bot is provided "as is" and without warranty of any kind, express or implied. We do not warrant that the Bot will be error-free, uninterrupted, or free from viruses or other harmful components.
 
 
 ## Limitation of Liability
 
-In no event shall the Bot's developers or owners be liable for any direct, indirect, incidental, special, or consequential damages arising out of or in any way connected with the use of the bot.
+In no event shall the Bot's developers or owners be liable for any direct, indirect, incidental, special, or consequential damages arising out of or in any way connected with the use of the Bot.
 
 
 ## Governing Law
@@ -59,12 +59,12 @@ If you have any questions about these terms of service, please contact us at our
 
 # Privacy Policy
 
-This privacy policy explains how we collect, use, and protect your personal information related to your use of this application ("Bot").
+This privacy policy explains how we collect, use, and protect your personal information ("Data") related to your use of this application ("Bot").
 Use of the Bot is considered an agreement to the terms of this Policy. 
 
 ## Information We Collect
 
-The use of the Bot requires the collection of some specific user data ("Data"), and as such we may collect certain information about you.
+The use of the Bot requires the collection of some specific user data, and as such we may collect certain information about you.
 The Data collected includes, but is not limited to:
 - Discord user ID values
 - Discord guild ID values
@@ -94,7 +94,7 @@ The use of the Bot is not permitted for minors under the age of 13, or under the
 
 ## Changes to this Privacy Policy
 
-We may update this privacy policy from time to time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot/edit/env/svil/README.md) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any changes to this privacy policy indicates your acceptance of such changes.
+We may update this privacy policy from time to time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any changes to this privacy policy indicates your acceptance of such changes.
 
 
 ## Contact Us
