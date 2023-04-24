@@ -25,7 +25,7 @@ We take reasonable measures to protect your personal Data from unauthorized acce
 
 ## Access to Your Data
 
-Access to Data is only permitted to Bot's developers, and only for the purpose of development, testing, and implementation of features for Bot. If you would like to access the personal Data we have collected about you, you may request it by contacting us through the [official Discord server](https://discord.gg/krNZUMB9Tq) or privately. We will respond to your request within a reasonable timeframe and provide you with the Data we have collected about you. You have the right to request the removal of relevant Data.
+Access to Data is only permitted to Bot's developers, and only for the purpose of development, testing, and implementation of features for Bot. If you would like to access the personal Data we have collected about you, you may request it by contacting us through the official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. We will respond to your request within a reasonable timeframe and provide you with the Data we have collected about you. You have the right to request the removal of relevant Data.
 
 
 ## Underage Users
@@ -54,8 +54,8 @@ These terms of service shall be governed by and construed in accordance with the
 
 If you have any questions about these terms of service, please contact us at our official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. For more information check the [Discord Terms Of Service](https://discord.com/terms).
 
-
-
+<br />
+<br />
 
 # Privacy Policy
 
