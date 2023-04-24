@@ -35,7 +35,7 @@ The use of the Bot is not permitted for minors under the age of 13, or under the
 
 ## Changes to the Terms of Service
 
-We reserve the right to modify these terms of service at any time, and your continued use of the Bot after any such modifications shall constitute your agreement to be bound by the modified terms.
+We reserve the right to modify these terms of service at any time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot/edit/env/svil/README.md) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any such modifications shall constitute your agreement to be bound by the modified terms.
 
 
 ## Disclaimer of Warranty
