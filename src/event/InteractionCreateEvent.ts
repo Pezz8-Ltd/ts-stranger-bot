@@ -1,12 +1,14 @@
 import { Interaction } from "discord.js";
 
+import ICommand from "../interface/ICommand";
 import ClassLogger from "../logging/Logger";
 import StrangerBot from "../config/StrangerBot";
 import pingInteractionCommand from "../command/interaction/PingInteractionCommand";
 import searchInteractionCommand from "../command/interaction/SearchInteractionCommand";
 import skipInteractionCommand from "../command/interaction/SkipInteractionCommand";
 import stopInteractionCommand from "../command/interaction/StopInteractionCommand";
-import ICommand from "../interface/ICommand";
+import nicknameInteractionCommand from "../command/interaction/NicknameInteractionCommand";
+import languageInteractionCommand from "../command/interaction/LanguageInteractionCommand";
 
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
@@ -47,5 +49,7 @@ const messageCommandMap: { [k: string]: ICommand } = {
     "ping": pingInteractionCommand,
     "search": searchInteractionCommand,
     "skip": skipInteractionCommand,
-    "stop": stopInteractionCommand
+    "stop": stopInteractionCommand,
+    "language": languageInteractionCommand,
+    "nickname": nicknameInteractionCommand
 }

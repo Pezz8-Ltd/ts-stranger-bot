@@ -32,10 +32,11 @@ export default class StrangerBot extends Client {
         this.logger.info("Listening on event 'voiceStateUpdate'");
 
         
-        /* The put method is used to fully refresh all commands
+        /* The put method is used to fully refresh all commands */
         if(isProd) {
             const rest = new REST();
 
+            /*
             rest.get(Routes.applicationCommands( process.env.PROD_APPID as string ))
                 .then(data => {
                     const promises = [];
@@ -45,11 +46,11 @@ export default class StrangerBot extends Client {
                     }
                     return Promise.all(promises);
                 });
+            */
 
             rest.setToken(token)
                 .put( Routes.applicationCommands( process.env.PROD_APPID as string ), { body: slashCommandBuilders })
                 .then( (data: any): void => this.logger.info(`Successfully reloaded ${data.length} application {/} commands.`));
         }
-        */
     }
 }

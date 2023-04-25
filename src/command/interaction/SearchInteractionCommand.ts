@@ -9,7 +9,7 @@ const searchInteractionCommand: ICommand = {
     fn: async (interaction: ChatInputCommandInteraction | ButtonInteraction, language: string) => {
 
         // Run text and voice channel checks - on fail, "data" will be undefined: exit
-        const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction, false);
+        const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction);
         if(!data) return;
 
         // If no stranger is found, create one and start the searching process
@@ -20,7 +20,7 @@ const searchInteractionCommand: ICommand = {
 export default searchInteractionCommand;
 
 /* ==== UTILS =================================================================================== */
-export async function strangerCommandChannelCheck(interaction: ButtonInteraction | ChatInputCommandInteraction): Promise<InteractionData | undefined> {
+export async function strangerCommandChannelCheck(interaction: ButtonInteraction | ChatInputCommandInteraction, assertStranger: boolean = false): Promise<InteractionData | undefined> {
     // Retrieve the interaction only if from a slash command - we don't want to reply to buttons
     const interactionToSend: ChatInputCommandInteraction | null = interaction.isChatInputCommand() ? interaction : null;
     
@@ -46,6 +46,11 @@ export async function strangerCommandChannelCheck(interaction: ButtonInteraction
     // Check if a StrangerServer object has already been created for this server
     const guildId: string = textChannel.guildId as string;
     let stranger: StrangerServer = strangerServersMap[guildId];
+
+    if(assertStranger && !stranger) {
+        interactionToSend?.reply({ content: "Use the */search* command to start a session first!", ephemeral: true });
+        return;
+    }
 
     return { guildId, member, stranger, textChannel, voiceChannel, interaction: interactionToSend };
 }

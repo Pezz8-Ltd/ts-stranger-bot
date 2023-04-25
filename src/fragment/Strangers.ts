@@ -1,7 +1,6 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, InternalDiscordGatewayAdapterCreator, TextChannel, VoiceBasedChannel } from "discord.js";
 import { AudioPlayer, AudioReceiveStream, EndBehaviorType, StreamType, VoiceConnection, VoiceConnectionStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import { EventEmitter } from "events";
-import { XXHash3 } from "xxhash-addon";
 
 import ClassLogger from "../logging/Logger";
 import { getDurationFromMs, sleepBool } from "../utils/Utils";
@@ -9,6 +8,7 @@ import { ColorResolvable } from "discord.js";
 import { ButtonBuilder } from "discord.js";
 import { ButtonStyle } from "discord.js";
 import DynamicInteraction from "./DynamicInteraction";
+import { UserMetadata, getUserMetadata } from "./UserMetadataService";
 
 /* ==== ENUMS =================================================================================== */
 /**
@@ -22,7 +22,6 @@ export enum StrangerStatus { PENDING, MATCHED, ABORTED }
 /* ==== PROPERTIES ============================================================================== */
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
-const HASH_SALT: string = process.env.HASH_SECRET as string;
 const MAIN_EMBED_COLOR: ColorResolvable = "DarkVividPink";
 const INFO_EMBED_COLOR: ColorResolvable = "Grey";
 const POLLING_WAIT_MS = 1000;
@@ -41,23 +40,7 @@ strangerStreamEmitter.on("close", (stranger: StrangerServer): void => {
     if(stranger.isMatched()) stranger.listenToStranger();
 });
 
-/* ==== CLASSES ================================================================================= */
-export class UserMetadata {
-
-    /* ==== CONSTRUCTOR ========================================================================= */
-    constructor(userId: string) {
-        this.id = userId;
-        this.hash = XXHash3.hash( Buffer.from(userId + HASH_SALT) ).toString("hex");
-    }
-
-    /* ==== PROPERTIES ========================================================================== */
-    id: string;                                     // User id
-    private hash: string;                           // Default nickname, generated from the user id
-    private nickname: string | undefined;           // Custom nickname
-
-    getNickname = () => this.nickname || this.hash; // Gets nickname to display on other user's end
-}
-
+/* ==== CLASS =================================================================================== */
 export class StrangerServer {
 
     /* ==== CONSTRUCTOR ========================================================================= */
@@ -191,7 +174,11 @@ export class StrangerServer {
      * @param language language the user want to set for the server
      * @param interaction slash command interaction received
      */
-    languageCommand(language: string, interaction: ChatInputCommandInteraction | null): void {
+    languageCommand(callerUserId: string, language: string, interaction: ChatInputCommandInteraction | null): void {
+        if(this.userMetadata?.id !== callerUserId) {
+            interaction?.reply({ content: "Connection bound to another user!", ephemeral: true });
+            return;
+        }
         this.language = language;
         if(interaction) interaction.reply( this.getLanguageContent(language) );
     }
@@ -217,7 +204,7 @@ export class StrangerServer {
         if(this.isMatched()) return this.skipCommand(callerUserId, textChannel, voiceChannel, interaction);
 
         // Save userId, text and voice channel previously checked
-        this.userMetadata = new UserMetadata(callerUserId);
+        this.userMetadata = getUserMetadata(callerUserId);
         this.textChannel = textChannel;
         this.voiceChannel = voiceChannel;
 

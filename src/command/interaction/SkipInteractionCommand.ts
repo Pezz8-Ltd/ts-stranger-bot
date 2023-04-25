@@ -10,13 +10,8 @@ const skipInteractionCommand: ICommand = {
     fn: async (interaction: ChatInputCommandInteraction | ButtonInteraction) => {
 
         // Run text and voice channel checks - on fail, "data" will be undefined: exit
-        const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction);
+        const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction, true);
         if(!data) return;
-
-        if(!data.stranger) {
-            data.interaction?.reply({ content: "There's no stranger to skip!", ephemeral: true });
-            return;
-        }
 
         data.stranger.skipCommand(data.member?.id as string, data.textChannel, data.voiceChannel, data.interaction);
     }

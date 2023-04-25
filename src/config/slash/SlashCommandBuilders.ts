@@ -42,5 +42,16 @@ export default [
                 { name: "english", value: "EN" }
             )
         )
-        .toJSON()
+        .toJSON(),
+
+        new SlashCommandBuilder()
+            .setName("nickname")
+            .setDescription("Change the name displayed to other strangers!")
+            .addStringOption(option => option
+                .setName("name")
+                .setDescription("The new nickname you want to set.")
+                .setRequired(true)
+                .setMaxLength(32)
+            )
+            .toJSON()
 ]
