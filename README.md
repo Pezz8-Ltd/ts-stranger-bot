@@ -1,102 +1,72 @@
-# Terms of Service
+# Local Environment
 
-By using this Discord application ("Bot"), you agree to be bound by the following terms of service:
+## Setup
 
-## Use of the Bot
+To install all the required dependancies listed in the package.json
+```
+npm install
+```
 
-The Bot is intended for use on Discord servers to allow users to communicate with other users from different servers.
+For the bot to start, a .env file is requried. There are a few necessary variables. Here's an example:
+```
+PREFIX = $
+VERSION = 1.0.0
 
-The Bot allows users to change settings such as language and nickname displayed to others. No personal data is displayed to other users other than the nickname that the user themselves set.
+PROD = 1
+TEST_TOKEN = test_bot_token
+PROD_TOKEN = prod_bot_token
+PROD_APPID = 1324354657687980170
 
-The Bot is designed to randomly pair users for chat sessions with each other. The Bot does not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users.
+HASH_SECRET = some_random_string
+```
 
-Please note that while the Bot owners take reasonable steps to ensure that users are paired appropriately, we cannot guarantee the behavior of other users. Use of the Bot is at your own risk, and we assume no liability for any actions or behaviors of other users. By using the Bot, you agree to use it only for lawful purposes and in compliance with [Discord's Terms Of Service](https://discord.com/terms).
+## Run
+All the necessary commands for testing, transpiling and running are included in the package.json.
 
+To run the bot in "test" mode for developing purposes:
+```
+npm test
+```
 
-## Data Collection
+To transpile the TypeScript source code to a JavaScript module and run it:
+```
+npm run build
+npm start
+```
 
-The Bot may collect certain information about you ("Data"), including but not limited to your Discord user ID and guild ID, for the purpose of saving user settings and preferences for future use. The Bot does not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users. Data is not sold, provided to, or shared with any third party, except where required by law or a Terms of Service agreement.
+<br/>
 
+# Docker Environment
 
-## Data Security
+## Setup
 
-We take reasonable measures to protect your personal Data from unauthorized access or disclosure. However, no method of transmission over the internet or electronic storage is 100% secure, and we cannot guarantee the absolute security of your Data. The Bot owners assume no liability for the unintentional or malicious breach of Data.
+### Image creation
+All the necessary files to prepare the docker image are in the repository (Dockerfile, .dockerignore).
 
+To create your image (from the project's root directory):
+```
+docker build . -t ts-stranger-bot
+```
 
-## Access to Your Data
+### Local Network
+Since we need to connect a MongoDB database, we need to set up a local network to keep all our services.
+Once the network is created, run the bot.
+```
+docker network create stranger-bot-network subnet=172.18.0.0/16
+```
 
-Access to Data is only permitted to Bot's developers, and only for the purpose of development, testing, and implementation of features for Bot. If you would like to access the personal Data we have collected about you, you may request it by contacting us through the official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. We will respond to your request within a reasonable timeframe and provide you with the Data we have collected about you. You have the right to request the removal of relevant Data.
+### MongoDB
+Download the mongo latest image and run it in our local network.
+```
+docker pull mongo
+```
+The container will need to have a static ip address so we can save it in the .env file of the bot (For now™).
+Create a directory on the host to save the container data to avoid losing data during container changes or updates (volume).
 
-
-## Underage Users
-
-The use of the Bot is not permitted for minors under the age of 13, or under the age of legal consent in their country. This is in compliance with the [Discord Terms Of Service](https://discord.com/terms). No information will be knowingly stored from an underage user. If it is found out that a user is underage we will take all necessary action to delete the stored data.
-
-
-## Changes to the Terms of Service
-
-We reserve the right to modify these terms of service at any time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any such modifications shall constitute your agreement to be bound by the modified terms.
-
-
-## Disclaimer of Warranty
-
-The Bot is provided "as is" and without warranty of any kind, express or implied. We do not warrant that the Bot will be error-free, uninterrupted, or free from viruses or other harmful components.
-
-
-## Limitation of Liability
-
-In no event shall the Bot's developers or owners be liable for any direct, indirect, incidental, special, or consequential damages arising out of or in any way connected with the use of the Bot.
-
-
-## Governing Law
-
-These terms of service shall be governed by and construed in accordance with the laws of the jurisdiction in which the Bot's developers or owners are located, without giving effect to any principles of conflicts of law.
-
-If you have any questions about these terms of service, please contact us at our official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. For more information check the [Discord Terms Of Service](https://discord.com/terms).
-
-<br />
-<br />
-
-# Privacy Policy
-
-This privacy policy explains how we collect, use, and protect your personal information ("Data") related to your use of this application ("Bot").
-Use of the Bot is considered an agreement to the terms of this Policy. 
-
-## Information We Collect
-
-The use of the Bot requires the collection of some specific user data, and as such we may collect certain information about you.
-The Data collected includes, but is not limited to:
-- Discord user ID values
-- Discord guild ID values
-- Custom data inserted by the user
-
-We collect this information solely for the purpose of saving user settings and preferences for future use.
-Data is not sold, provided to, or shared with any third party, except where required by law or a Terms of Service agreement.
-
-We do not collect or store any conversation data, and we do not use any data related to audio or voice conversations for any purpose other than facilitating communication between users.
-
-
-## Data Security
-
-We take reasonable measures to protect your personal Data from unauthorized access or disclosure. However, no method of transmission over the internet or electronic storage is 100% secure, and we cannot guarantee the absolute security of your Data. The Bot owners assume no liability for the unintentional or malicious breach of Data.
-
-
-## Access to Your Data
-
-Access to Data is only permitted to Bot's developers, and only for the purpose of development, testing, and implementation of features for Bot. 
-If you would like to access the personal Data we have collected about you, you may request it by contacting us through the official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. We will respond to your request within a reasonable timeframe and provide you with the Data we have collected about you. You have the right to request the removal of relevant Data.
-
-
-## Underage Users
-
-The use of the Bot is not permitted for minors under the age of 13, or under the age of legal consent in their country. This is in compliance with the [Discord Terms of Service](https://discord.com/terms). No information will be knowingly stored from an underage user. If it is found out that a user is underage we will take all necessary action to delete the stored data.
-
-
-## Changes to this Privacy Policy
-
-We may update this privacy policy from time to time by posting a new version on our [GitHub page](https://github.com/Cotezzo/ts-stranger-bot) or through our official [Discord server](https://discord.gg/krNZUMB9Tq). Your continued use of the Bot after any changes to this privacy policy indicates your acceptance of such changes.
-
-
-## Contact Us
-
-If you have any questions or concerns about this privacy policy, or if you would like to request access to your personal information, please contact us through the official [Discord server](https://discord.gg/krNZUMB9Tq) or privately. For more information check the [Discord Terms Of Service](https://discord.com/terms).
+## Run
+Our images and networks are ready to be run in a container.
+While the previous configuration is only needed once (if nothing changes), these are the only commands needed after a new release.
+```
+docker run --net stranger-bot-network --ip 172.18.0.10 --name ts-stranger-bot-c1 -d ts-stranger-bot
+docker run --net stranger-bot-network --ip 172.18.0.11 -p 27017:27017 -v /data/db:/home/pupazzo/Desktop/mongodb-volumes/mongo-c1 --name mongo-c1 -d mongo
+```
