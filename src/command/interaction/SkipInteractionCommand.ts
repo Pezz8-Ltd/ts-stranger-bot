@@ -1,7 +1,6 @@
-import { ButtonInteraction, ChatInputCommandInteraction, GuildMember, Message, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 
 import ICommand from "../../interface/ICommand";
-import { StrangerServer, strangerServersMap } from "../../fragment/Strangers";
 import { InteractionData, strangerCommandChannelCheck } from "./SearchInteractionCommand";
 
 /* ==== COMMAND ================================================================================= */
@@ -13,7 +12,7 @@ const skipInteractionCommand: ICommand = {
         const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction, true);
         if(!data) return;
 
-        data.stranger.skipCommand(data.member?.id as string, data.textChannel, data.voiceChannel, data.interaction);
+        data.stranger.skipCommand(data.member?.id as string, data.textChannel, data.voiceChannel, data.interaction, data.dmChannel);
     }
 }
 export default skipInteractionCommand;

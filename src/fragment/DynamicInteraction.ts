@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Message, TextChannel } from "discord.js";
+import { ChatInputCommandInteraction, Message } from "discord.js";
 import ClassLogger from "../logging/Logger";
 
 /* ==== PROPERTIES ============================================================================== */

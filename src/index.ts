@@ -37,3 +37,7 @@ export const strangerBot: StrangerBot = new StrangerBot({
     })
 });
 strangerBot.init();
+
+process.on("unhandledRejection", error => {
+	strangerBot.logger.error(`Unhandled promise rejection: ${error}`);
+});

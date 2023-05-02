@@ -1,7 +1,7 @@
 import { VoiceState } from "discord.js";
 
 import ClassLogger from "../logging/Logger";
-import { Country, StrangerLanguage, StrangerServer, countries, strangerServersMap } from "../fragment/Strangers";
+import { StrangerServer, strangerServersMap } from "../fragment/Strangers";
 import { strangerBot } from "..";
 
 const logger: ClassLogger = new ClassLogger(null as any, __filename);

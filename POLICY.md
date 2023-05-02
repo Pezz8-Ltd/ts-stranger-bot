@@ -7,8 +7,7 @@ Use of the Bot is considered an agreement to the terms of this Policy.
 
 The use of the Bot requires the collection of some specific user data, and as such we may collect certain information about you.
 The Data collected includes, but is not limited to:
-- Discord user ID values
-- Discord guild ID values
+- Discord user id values
 - Custom data inserted by the user
 
 We collect this information solely for the purpose of saving user settings and preferences for future use.

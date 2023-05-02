@@ -1,12 +1,17 @@
-import { ButtonInteraction, ChatInputCommandInteraction, GuildMember, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction, DMChannel, GuildMember, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
 
 import ICommand from "../../interface/ICommand";
 import { StrangerServer, strangerServersMap } from "../../fragment/Strangers";
+import ClassLogger from "../../logging/Logger";
+import { strangerBot } from "../..";
 
 /* ==== COMMAND ================================================================================= */
+const logger: ClassLogger = new ClassLogger(null as any, __filename);
+
 const searchInteractionCommand: ICommand = {
     name: "search",
-    fn: async (interaction: ChatInputCommandInteraction | ButtonInteraction, language: string) => {
+    fn: async (interaction: ChatInputCommandInteraction | ButtonInteraction, args: { [k: string]: any }) => {
+        const language: string = args?.language;
 
         // Run text and voice channel checks - on fail, "data" will be undefined: exit
         const data: InteractionData | undefined = await strangerCommandChannelCheck(interaction);
@@ -14,7 +19,7 @@ const searchInteractionCommand: ICommand = {
 
         // If no stranger is found, create one and start the searching process
         const stranger = data.stranger ?? (strangerServersMap[data.guildId] = new StrangerServer(language, data.textChannel));
-        stranger.searchCommand(data.member?.id as string, data.textChannel, data.voiceChannel, data.interaction);
+        stranger.searchCommand(data.member?.id as string, data.textChannel, data.voiceChannel, data.interaction, data.dmChannel);
     }
 }
 export default searchInteractionCommand;
@@ -52,12 +57,20 @@ export async function strangerCommandChannelCheck(interaction: ButtonInteraction
         return;
     }
 
-    return { guildId, member, stranger, textChannel, voiceChannel, interaction: interactionToSend };
+    // Retrieve dmChannel to send summaries privately
+    let dmChannel: DMChannel | null = null;
+    try {
+        dmChannel = interaction.user.dmChannel || await interaction.user.createDM();
+    } catch (e) {
+        logger.error(e.message);
+    }
+    return { guildId, member, dmChannel, stranger, textChannel, voiceChannel, interaction: interactionToSend };
 }
 
 export interface InteractionData {
     guildId: string;
     member: GuildMember | undefined;
+    dmChannel: DMChannel | null;
     stranger: StrangerServer;
     textChannel: TextChannel;
     voiceChannel: VoiceBasedChannel;

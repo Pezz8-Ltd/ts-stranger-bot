@@ -1,4 +1,4 @@
-import { ButtonInteraction, ChatInputCommandInteraction, GuildMember, Message, TextBasedChannel, TextChannel, VoiceBasedChannel } from "discord.js";
+import { ButtonInteraction, ChatInputCommandInteraction } from "discord.js";
 
 import ICommand from "../../interface/ICommand";
 import { InteractionData, strangerCommandChannelCheck } from "./SearchInteractionCommand";

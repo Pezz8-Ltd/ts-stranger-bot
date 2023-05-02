@@ -9,7 +9,7 @@ import { GuildMember } from "discord.js";
 /* ==== COMMAND ================================================================================= */
 const nicknameInteractionCommand: ICommand = {
     name: "nickname",
-    fn: async (interaction: ChatInputCommandInteraction) => {
+    fn: async (interaction: ChatInputCommandInteraction, args: { [k: string]: any }) => {
         
         // Command only valid in normal text chanels
         const textChannel: TextBasedChannel | null = interaction.channel;
@@ -26,10 +26,10 @@ const nicknameInteractionCommand: ICommand = {
         // Retrieve the strangerServer if exists
         const guildId: string = textChannel.guildId;
         const stranger: StrangerServer | null = strangerServersMap[guildId];
-        const nickname: string = interaction.options.getString("name") as string;
+        const nickname: string = args.name;
 
         // If it does, change current nickname and save it to database - if not, just save it
-        if(stranger)    stranger.userMetadata.storeNickname(nickname);
+        if(stranger)    stranger.nicknameCommand(nickname);
         else            saveUserNickname(member?.id as string, nickname);
 
         interaction.reply( { content: `Nickname successfully changed to **${nickname}**`, ephemeral: true } )

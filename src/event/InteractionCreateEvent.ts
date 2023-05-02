@@ -20,24 +20,25 @@ export default async (_: StrangerBot, interaction: Interaction): Promise<void> =
 
     // Only handle button and command interactions
     let command: string;
-    let language: string;
+    let args: { [k: string]: any } | null = null;
 
     if(interaction.isButton()) {
-        const args: string[] = interaction.customId.split(/\-/g);
-        command = args[0];
-        language = args[1];
-
+        command = interaction.customId;
         interaction.deferUpdate();
     } else if(interaction.isChatInputCommand()) {
-        // Language only present in "search" and "language" commands
         command = interaction.commandName;
-        language = interaction.options.getString("language") as string;
+        if(interaction.options.data.length) {
+            args = {};
+            interaction.options.data.map( e => (args as { [k: string]: any })[e.name] = e.value );
+        }
     } else return;
+
+    logger.info(`[${interaction.guild?.name}] ${interaction.member?.user.username}#${interaction.member?.user.discriminator}: ${command}${args ? " "+JSON.stringify(args) : ""}`);
 
     // Call internal command with parameters given directly by users
     // Execution wrapped in try/catch to avoid halt
     try {
-        await messageCommandMap[command].fn(interaction, language);
+        await messageCommandMap[command].fn(interaction, args);
     } catch(e) {
         logger.error(`Error during the execution of ${command}: ${e.message}`);
         console.error(e);

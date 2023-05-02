@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Message } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 import { strangerBot } from "../..";
 import ICommand from "../../interface/ICommand";
 
