@@ -3,7 +3,6 @@ import { ButtonInteraction, ChatInputCommandInteraction, DMChannel, GuildMember,
 import ICommand from "../../interface/ICommand";
 import { StrangerServer, strangerServersMap } from "../../fragment/Strangers";
 import ClassLogger from "../../logging/Logger";
-import { strangerBot } from "../..";
 
 /* ==== COMMAND ================================================================================= */
 const logger: ClassLogger = new ClassLogger(null as any, __filename);

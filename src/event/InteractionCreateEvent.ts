@@ -9,6 +9,7 @@ import skipInteractionCommand from "../command/interaction/SkipInteractionComman
 import stopInteractionCommand from "../command/interaction/StopInteractionCommand";
 import nicknameInteractionCommand from "../command/interaction/NicknameInteractionCommand";
 import languageInteractionCommand from "../command/interaction/LanguageInteractionCommand";
+import { strangerBot } from "..";
 
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
@@ -33,6 +34,8 @@ export default async (_: StrangerBot, interaction: Interaction): Promise<void> =
         }
     } else return;
 
+    // Update bot status (presence) at most once per minute
+    strangerBot.updatePresence();
     logger.info(`[${interaction.guild?.name}] ${interaction.member?.user.username}#${interaction.member?.user.discriminator}: ${command}${args ? " "+JSON.stringify(args) : ""}`);
 
     // Call internal command with parameters given directly by users

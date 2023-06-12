@@ -1,15 +1,35 @@
-import { Client, REST, Routes } from 'discord.js';
+import { ActivityType, Client, REST, Routes } from 'discord.js';
 
 import ClassLogger from '../logging/Logger';
 import readyEvent from '../event/ReadyEvent';
 import voiceStateEvent from '../event/VoiceStateEvent';
 import interactionCreateEvent from '../event/InteractionCreateEvent';
 import slashCommandBuilders from './slash/SlashCommandBuilders';
+import { strangerServersMap } from '../fragment/Strangers';
 
 /* ==== CLASS =================================================================================== */
 /** Main class that rapresents the bot itself. On init, logs in the bot into Discord and starts to listen on all the events. */
 export default class StrangerBot extends Client {
     public logger: ClassLogger  = new ClassLogger(null as any, __filename);
+
+    private readonly UPDATE_PRESENCE_INTERVAL: number = 60_000;
+    private nextUpdate: number = Date.now();
+    public updatePresence() {
+        // Only update once per minute at most
+        const now: number = Date.now();
+        if(now < this.nextUpdate) return;
+        this.nextUpdate = now + this.UPDATE_PRESENCE_INTERVAL;
+
+        // Count currently matched strangers
+        let talkingStrangers: number = 0;
+        for(const v of Object.values(strangerServersMap))
+            if(v.isMatched() || v.isPending())
+                talkingStrangers++;
+
+        // Update bot status (presence)
+        this.logger.debug("Talking strangers: " + talkingStrangers);
+        this.user?.setPresence({ activities: [{ name: `${talkingStrangers} strangers`, type: ActivityType.Listening }], status: 'idle' });
+    }
 
     public init = () => {
         const isProd: boolean = !!process.env.PROD;
