@@ -10,6 +10,7 @@ import stopInteractionCommand from "../command/interaction/StopInteractionComman
 import nicknameInteractionCommand from "../command/interaction/NicknameInteractionCommand";
 import languageInteractionCommand from "../command/interaction/LanguageInteractionCommand";
 import { strangerBot } from "..";
+import helpInteractionCommand from "../command/interaction/HelpInteractionCommand";
 
 const logger: ClassLogger = new ClassLogger(null as any, __filename);
 
@@ -51,6 +52,7 @@ export default async (_: StrangerBot, interaction: Interaction): Promise<void> =
 /* ==== COMMANDS MAP ============================================================================ */
 const messageCommandMap: { [k: string]: ICommand } = {
     "ping": pingInteractionCommand,
+    "help": helpInteractionCommand,
     "search": searchInteractionCommand,
     "skip": skipInteractionCommand,
     "stop": stopInteractionCommand,

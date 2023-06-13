@@ -2,11 +2,6 @@ import { SlashCommandBuilder } from "discord.js";
 
 export default [
     new SlashCommandBuilder()
-		.setName("ping")
-		.setDescription("Fairly useless... Use it to check if the bot is online.")
-        .toJSON(),
-
-    new SlashCommandBuilder()
         .setName("search")
         .setDescription("Start searching a stranger from your voice channel!")
         .addStringOption(option => option
@@ -44,14 +39,38 @@ export default [
         )
         .toJSON(),
 
-        new SlashCommandBuilder()
-            .setName("nickname")
-            .setDescription("Change the name displayed to other strangers!")
-            .addStringOption(option => option
-                .setName("name")
-                .setDescription("The new nickname you want to set.")
-                .setRequired(true)
-                .setMaxLength(32)
+    new SlashCommandBuilder()
+        .setName("nickname")
+        .setDescription("Change the name displayed to other strangers!")
+        .addStringOption(option => option
+            .setName("name")
+            .setDescription("The new nickname you want to set.")
+            .setRequired(true)
+            .setMaxLength(32)
+        )
+        .toJSON(),
+
+    new SlashCommandBuilder()
+        .setName("help")
+        .setDescription("Check out more informations about the commands!")
+        .addStringOption(option => option
+            .setName("command")
+            .setDescription("The command you want to know more about.")
+            .setRequired(false)
+            .addChoices(
+                { name: "/search", value: "search" },
+                { name: "/skip", value: "skip" },
+                { name: "/stop", value: "stop" },
+                { name: "/language", value: "language" },
+                { name: "/nickname", value: "nickname" },
+                { name: "/help", value: "help" },
+                { name: "/ping", value: "ping" }
             )
-            .toJSON()
+        )
+        .toJSON(),
+
+    new SlashCommandBuilder()
+        .setName("ping")
+        .setDescription("Fairly useless... Use it to check if the bot is online.")
+        .toJSON(),
 ]
