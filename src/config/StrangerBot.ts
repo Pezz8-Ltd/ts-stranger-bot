@@ -1,4 +1,4 @@
-import { ActivityType, Client, EmbedBuilder, Message, REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes, SlashCommandBuilder } from 'discord.js';
+import { ActivityType, Client, Message, REST, Routes } from 'discord.js';
 
 import ClassLogger from '../logging/Logger';
 import readyEvent from '../event/ReadyEvent';
@@ -6,7 +6,6 @@ import voiceStateEvent from '../event/VoiceStateEvent';
 import interactionCreateEvent from '../event/InteractionCreateEvent';
 import slashCommandBuilders from './slash/SlashCommandBuilders';
 import { strangerServersMap } from '../fragment/Strangers';
-import { Logger } from '../../../ts-leotta-talkative/src/logging/Logger';
 
 /* ==== CLASS =================================================================================== */
 /** Main class that rapresents the bot itself. On init, logs in the bot into Discord and starts to listen on all the events. */
@@ -80,4 +79,4 @@ export default class StrangerBot extends Client {
     }
 }
 
-const testCommand = (msg: Message) => { Logger.info(msg.content); }
+const testCommand = (msg: Message) => { ClassLogger.info(msg.content); }
