@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node ./dist/index.js",
     "test": "ts-node-dev --respawn --transpile-only --poll ./src/index.ts",
-    "build": "tsc --removeComments ./src/index.ts --outDir ./dist",
-    "prod": "sudo bash ./jenkins-prod.sh"
+    "build": "tsc --removeComments ./src/index.ts --outDir ./dist"
   },
   "keywords": [
     "TypeScript",
