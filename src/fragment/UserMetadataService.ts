@@ -32,6 +32,11 @@ export class UserMetadata {
     /** Gets nickname to display on other user's end */
     getNickname() { return this.nickname || this.hash; }
 
+    setNickname(nickname: string) {
+        if(this.nickname === nickname) return;
+        this.nickname = nickname;
+    }
+
     /** Uses the channel of the user to send a private message (used for summaries) */
     // TODO: add PREMIUM check first
     sendDM(content: any): Promise<Message<boolean>> | undefined {
@@ -44,10 +49,8 @@ export class UserMetadata {
 
     /** Saves the new nickname that will be displayed */
     storeNickname(nickname: string): void {
-        if(this.nickname === nickname) return;
-        
-        this.nickname = nickname;
-        saveUserNickname(this.id, this.nickname).catch(e => logger.error(e.message));
+        this.setNickname(nickname);
+        saveUserNickname(this.id, nickname).catch(e => logger.error(e.message));
     }
 
     /* ==== UTILS =============================================================================== */
@@ -91,6 +94,9 @@ export async function saveUserNickname(userId: string, nickname: string): Promis
             // Update user nickname and save to database
             metadata.nickname = nickname;
             await metadata.save();
+
+            // Se presente in cache, ne aggiorno il nickname in modo da allineare il bot
+            userMetadataMap[userId]?.setNickname(nickname);
 
             resolve(true);
         } catch (e) {
